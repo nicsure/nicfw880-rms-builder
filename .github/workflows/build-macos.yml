@@ -94,18 +94,18 @@ jobs:
         body: |
           ## ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }} ${{ github.event.inputs.version || 'v1.0.0' }}
 
-          Bundle universal de aplicación macOS (ARM64 + x86_64)
+          Universal macOS application bundle (ARM64 + x86_64)
 
-          ### Instalación
-          1. Descarga el archivo `.dmg`
-          2. Abre el DMG
-          3. Arrastra la app a la carpeta Aplicaciones
+          ### Installation
+          1. Download the `.dmg` file
+          2. Open the DMG
+          3. Drag the app to Applications folder
 
-          ### Archivos
-          - 📱 DMG universal para instalación fácil
-          - 📦 Bundle ZIP universal para usuarios avanzados
+          ### Files
+          - 📱 Universal DMG for easy installation
+          - 📦 Universal ZIP bundle for advanced users
 
-          Construido automáticamente con GitHub Actions 🤖
+          Built automatically with GitHub Actions 🤖
         files: |
           ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}.dmg
           ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-universal.zip
