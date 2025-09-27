@@ -6,22 +6,20 @@ Automated GitHub Actions workflow to build universal macOS application bundles f
 
 ### Option 1: Manual Trigger (Recommended)
 
-1. Go to **Actions** tab in your GitHub repo
-2. Click **Build macOS Universal Bundle**
-3. Click **Run workflow**
-4. Fill in the form:
-   - **Version**: `v1.0.0` (or your version)
-   - **ARM64 ZIP URL**: URL or path to your ARM64 ZIP
-   - **x64 ZIP URL**: URL or path to your x64 ZIP
+1. Create `to_release/` folder in your repo
+2. Upload your ZIP files there (osx-arm64.zip and osx-x64.zip)
+3. Go to **Actions** tab in your GitHub repo
+4. Click **Build macOS Universal Bundle**
+5. Click **Run workflow**
+6. Fill in the form:
+   - **Version**: `Beta3A` (or your version)
    - **Executable name**: `NicFW880_RMS` (your app name)
-   - **Create release**: ✅ (to auto-create GitHub release)
-
+ 
 ### Option 2: Upload ZIPs to Repo
 
-1. Create `releases/` folder in your repo
+1. Create `to_release/` folder in your repo
 2. Upload your ZIP files there
-3. Use paths like `releases/osx-arm64.zip` in the workflow
-
+3.
 ## 📦 What You Get
 
 - 🔗 **Universal Bundle**: Single `.app` that works on ARM64 and x86_64
@@ -45,7 +43,7 @@ repo/
 ├── scripts/                           # Build scripts
 │   ├── create_universal_from_zips.sh  # Bundle creation
 │   └── create_dmg.sh                  # DMG creation
-├── releases/                          # Upload your ZIPs here (optional)
+├── to_release/                          # Upload your ZIPs here (optional)
 └── README.md                          # This file
 ```
 
@@ -73,7 +71,6 @@ chmod +x scripts/*.sh
 
 ## 📝 Notes
 
-- Requires public URLs for ZIP files OR upload them to the repo
 - GitHub Actions provides macOS runners with all necessary tools
 - DMG layout is automatically configured for professional appearance
 - Creates both individual files and GitHub releases
