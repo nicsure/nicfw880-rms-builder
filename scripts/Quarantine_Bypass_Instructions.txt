@@ -1,0 +1,50 @@
+🔐 QUARANTINE BYPASS INSTRUCTIONS 🔐
+
+If macOS prevents the application from running due to quarantine restrictions,
+follow these steps to allow execution:
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 COPY & PASTE THESE COMMANDS IN TERMINAL:
+
+1. Open Terminal (Applications → Utilities → Terminal)
+
+2. Navigate to the Applications folder:
+   cd /Applications
+
+3. Remove quarantine attribute (COPY THIS COMMAND):
+   sudo xattr -rd com.apple.quarantine NicFW880_RMS.app
+
+4. Press Enter and type your password when prompted
+
+5. Try running the application again
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🛡️ ALTERNATIVE METHOD - System Preferences:
+
+1. Go to System Preferences → Security & Privacy
+2. Click the "General" tab
+3. Look for a message about "NicFW880_RMS" being blocked
+4. Click "Allow Anyway" or "Open Anyway"
+5. Try running the application again
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ TROUBLESHOOTING:
+
+If the app still won't open:
+• Right-click the app and select "Open"
+• Hold Control key and click the app, then select "Open"
+• Try: sudo spctl --master-disable (temporarily disables Gatekeeper)
+• Re-enable with: sudo spctl --master-enable
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 WHY THIS HAPPENS:
+
+This application is not code-signed with an Apple Developer Certificate.
+macOS Gatekeeper blocks unsigned applications by default for security.
+These steps safely allow the application to run on your system.
+
+═══════════════════════════════════════════════════════════════════════════════

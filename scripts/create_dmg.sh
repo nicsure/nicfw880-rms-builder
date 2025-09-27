@@ -39,6 +39,14 @@ cp -R "$APP_BUNDLE" "$STAGING_DIR/"
 echo "🔗 Creando enlace a Aplicaciones..."
 ln -s /Applications "$STAGING_DIR/Applications"
 
+echo "📄 Añadiendo instrucciones de cuarentena..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/Quarantine_Bypass_Instructions.txt" ]; then
+    cp "$SCRIPT_DIR/Quarantine_Bypass_Instructions.txt" "$STAGING_DIR/"
+else
+    echo "⚠️  Archivo de instrucciones no encontrado en $SCRIPT_DIR"
+fi
+
 echo "🎨 Creando imagen de fondo..."
 # Crear una imagen de fondo simple con texto
 cat > "$STAGING_DIR/.background_script.sh" << 'EOF'
@@ -94,8 +102,9 @@ tell application "Finder"
         set background picture of theViewOptions to file ".background:instructions.txt"
 
         -- Posicionar iconos
-        set position of item "$APP_BUNDLE" of container window to {150, 200}
-        set position of item "Applications" of container window to {400, 200}
+        set position of item "$APP_BUNDLE" of container window to {150, 150}
+        set position of item "Applications" of container window to {400, 150}
+        set position of item "Quarantine_Bypass_Instructions.txt" of container window to {275, 280}
 
         close
         open
