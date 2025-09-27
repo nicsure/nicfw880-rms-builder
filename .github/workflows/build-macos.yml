@@ -1,0 +1,151 @@
+name: Build macOS Universal Bundle
+
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      arm64_zip_url:
+        description: 'URL to ARM64 ZIP file'
+        required: true
+      x64_zip_url:
+        description: 'URL to x64 ZIP file'
+        required: true
+      executable_name:
+        description: 'Executable name (without extension)'
+        required: true
+        default: 'NicFW880_RMS'
+      create_release:
+        description: 'Create GitHub release'
+        type: boolean
+        default: true
+
+  # Can also be triggered with push to main (optional)
+  push:
+    branches: [ main ]
+    paths: [ 'releases/**' ]
+
+jobs:
+  build-universal-dmg:
+    runs-on: macos-latest
+
+    steps:
+    - name: 🔍 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🛠️ Make scripts executable
+      run: |
+        chmod +x *.sh
+
+    - name: 📥 Download ARM64 ZIP
+      run: |
+        echo "Downloading ARM64 ZIP..."
+        if [[ "${{ github.event.inputs.arm64_zip_url }}" == http* ]]; then
+          curl -L -o osx-arm64.zip "${{ github.event.inputs.arm64_zip_url }}"
+        else
+          # If it's a file in the repo
+          cp "${{ github.event.inputs.arm64_zip_url }}" osx-arm64.zip
+        fi
+        ls -la osx-arm64.zip
+
+    - name: 📥 Download x64 ZIP
+      run: |
+        echo "Downloading x64 ZIP..."
+        if [[ "${{ github.event.inputs.x64_zip_url }}" == http* ]]; then
+          curl -L -o osx-x64.zip "${{ github.event.inputs.x64_zip_url }}"
+        else
+          # If it's a file in the repo
+          cp "${{ github.event.inputs.x64_zip_url }}" osx-x64.zip
+        fi
+        ls -la osx-x64.zip
+
+    - name: 🔨 Create Universal Bundle
+      run: |
+        echo "Creating universal bundle..."
+        ./create_universal_from_zips.sh \
+          osx-arm64.zip \
+          osx-x64.zip \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}"
+
+        echo "Verifying bundle..."
+        ls -la "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app"
+
+        echo "Checking architectures..."
+        lipo -info "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app/Contents/MacOS/${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}"
+
+    - name: 💿 Create DMG
+      run: |
+        echo "Creating DMG..."
+        ./create_dmg.sh \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app" \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}"
+
+        echo "Verifying DMG..."
+        ls -la *.dmg
+
+    - name: 📦 Create ZIP of Bundle (for artifact)
+      run: |
+        zip -r "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-universal.zip" \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app"
+
+    - name: 📤 Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-universal-build
+        path: |
+          *.dmg
+          *.zip
+          !osx-arm64.zip
+          !osx-x64.zip
+
+    - name: 🚀 Create Release
+      id: create_release
+      if: ${{ github.event.inputs.create_release == 'true' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version || 'v1.0.0' }}
+        release_name: ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }} ${{ github.event.inputs.version || 'v1.0.0' }}
+        body: |
+          ## ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }} ${{ github.event.inputs.version || 'v1.0.0' }}
+
+          Universal macOS application bundle (ARM64 + x86_64)
+
+          ### Installation
+          1. Download the `.dmg` file
+          2. Open the DMG
+          3. Drag the app to Applications folder
+
+          ### Files
+          - 📱 Universal DMG for easy installation
+          - 📦 Universal ZIP bundle for advanced users
+
+          Built automatically with GitHub Actions 🤖
+        draft: false
+        prerelease: false
+
+    - name: 📎 Upload Release Assets
+      if: ${{ github.event.inputs.create_release == 'true' }}
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}.dmg
+        asset_name: ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}.dmg
+        asset_content_type: application/x-apple-diskimage
+
+    - name: 📎 Upload ZIP to Release
+      if: ${{ github.event.inputs.create_release == 'true' }}
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-universal.zip
+        asset_name: ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-universal.zip
+        asset_content_type: application/zip
