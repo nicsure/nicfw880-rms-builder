@@ -4,7 +4,7 @@ Automated GitHub Actions workflow to build universal macOS application bundles f
 
 ## 🚀 How to Use
 
-### Option 1: Manual Trigger (Recommended)
+### Workflow
 
 1. Create `to_release/` folder in your repo
 2. Upload your ZIP files there (osx-arm64.zip and osx-x64.zip)
@@ -15,11 +15,6 @@ Automated GitHub Actions workflow to build universal macOS application bundles f
    - **Version**: `Beta3A` (or your version)
    - **Executable name**: `NicFW880_RMS` (your app name)
  
-### Option 2: Upload ZIPs to Repo
-
-1. Create `to_release/` folder in your repo
-2. Upload your ZIP files there
-3.
 ## 📦 What You Get
 
 - 🔗 **Universal Bundle**: Single `.app` that works on ARM64 and x86_64
