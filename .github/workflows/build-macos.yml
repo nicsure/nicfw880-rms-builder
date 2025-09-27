@@ -8,12 +8,6 @@ on:
         description: 'Version tag (e.g., v1.0.0)'
         required: true
         default: 'v1.0.0'
-      arm64_zip_url:
-        description: 'URL to ARM64 ZIP file'
-        required: true
-      x64_zip_url:
-        description: 'URL to x64 ZIP file'
-        required: true
       executable_name:
         description: 'Executable name (without extension)'
         required: true
@@ -26,7 +20,7 @@ on:
   # Can also be triggered with push to main (optional)
   push:
     branches: [ main ]
-    paths: [ 'releases/**' ]
+    paths: [ 'to_release/**' ]
 
 jobs:
   build-universal-dmg:
@@ -40,27 +34,13 @@ jobs:
       run: |
         chmod +x scripts/*.sh
 
-    - name: 📥 Download ARM64 ZIP
+    - name: 📥 Copy ZIP files from repository
       run: |
-        echo "Downloading ARM64 ZIP..."
-        if [[ "${{ github.event.inputs.arm64_zip_url }}" == http* ]]; then
-          curl -L -o osx-arm64.zip "${{ github.event.inputs.arm64_zip_url }}"
-        else
-          # If it's a file in the repo
-          cp "${{ github.event.inputs.arm64_zip_url }}" osx-arm64.zip
-        fi
-        ls -la osx-arm64.zip
-
-    - name: 📥 Download x64 ZIP
-      run: |
-        echo "Downloading x64 ZIP..."
-        if [[ "${{ github.event.inputs.x64_zip_url }}" == http* ]]; then
-          curl -L -o osx-x64.zip "${{ github.event.inputs.x64_zip_url }}"
-        else
-          # If it's a file in the repo
-          cp "${{ github.event.inputs.x64_zip_url }}" osx-x64.zip
-        fi
-        ls -la osx-x64.zip
+        echo "Copying ZIP files from to_release directory..."
+        cp to_release/osx-arm64.zip .
+        cp to_release/osx-x64.zip .
+        echo "Verifying files:"
+        ls -la osx-arm64.zip osx-x64.zip
 
     - name: 🔨 Create Universal Bundle
       run: |
