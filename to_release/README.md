@@ -1,12 +1,30 @@
 # Release Files
 
-Place your ZIP files here for the build pipeline:
+Coloca aquí tus archivos ZIP para el pipeline de construcción:
 
-- `osx-arm64.zip` - ARM64 macOS build
-- `osx-x64.zip` - x86_64 macOS build
+- `osx-arm64.zip` - Construcción de macOS ARM64
+- `osx-x64.zip` - Construcción de macOS x86_64
 
-The GitHub Actions workflow will automatically use these files to create universal bundles.
+El workflow de GitHub Actions usará automáticamente estos archivos para crear bundles universales.
 
-## File naming convention
-- Files must be named exactly `osx-arm64.zip` and `osx-x64.zip`
-- Each ZIP should contain the macOS application bundle ready for packaging
+## Convención de nombres de archivos
+- Los archivos deben llamarse exactamente `osx-arm64.zip` y `osx-x64.zip`
+- Cada ZIP debe contener el bundle de aplicación de macOS listo para empaquetar
+
+## Uso
+1. Sube tus archivos ZIP a esta carpeta
+2. Haz commit y push al repositorio
+3. El workflow se ejecutará automáticamente al detectar cambios en `to_release/`
+4. También puedes ejecutar el workflow manualmente desde GitHub Actions
+
+## Estructura esperada del ZIP
+```
+osx-arm64.zip
+└── NicFW880_RMS.app/
+    ├── Contents/
+    │   ├── Info.plist
+    │   ├── MacOS/
+    │   │   └── NicFW880_RMS
+    │   └── Resources/
+    └── ...
+```
