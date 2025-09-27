@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Script to create universal bundle from .zip files
-# Usage: ./create_universal_from_zips.sh <zip_arm64> <zip_x64> <executable_name>
+# Script para crear bundle universal desde archivos .zip
+# Uso: ./create_universal_from_zips.sh <zip_arm64> <zip_x64> <nombre_ejecutable>
 
 set -e
 
 if [ $# -ne 3 ]; then
-    echo "Usage: $0 <zip_arm64> <zip_x64> <executable_name>"
-    echo "Example: $0 osx-arm64.zip osx-x64.zip NicFW880_RMS"
+    echo "Uso: $0 <zip_arm64> <zip_x64> <nombre_ejecutable>"
+    echo "Ejemplo: $0 osx-arm64.zip osx-x64.zip NicFW880_RMS"
     exit 1
 fi
 
@@ -16,48 +16,48 @@ ZIP_X64="$2"
 EXECUTABLE_NAME="$3"
 BUNDLE_NAME="${EXECUTABLE_NAME}.app"
 
-# Verify that .zip files exist
+# Verificar que los archivos .zip existen
 if [ ! -f "$ZIP_ARM64" ] || [ ! -f "$ZIP_X64" ]; then
-    echo "Error: One or both .zip files do not exist"
+    echo "Error: Uno o ambos archivos .zip no existen"
     exit 1
 fi
 
-echo "🗂️  Cleaning temporary directories..."
+echo "🗂️  Limpiando directorios temporales..."
 rm -rf temp_arm64 temp_x64 "$BUNDLE_NAME"
 
-echo "📦 Extracting $ZIP_ARM64..."
+echo "📦 Extrayendo $ZIP_ARM64..."
 mkdir -p temp_arm64
 unzip -q "$ZIP_ARM64" -d temp_arm64
 
-echo "📦 Extracting $ZIP_X64..."
+echo "📦 Extrayendo $ZIP_X64..."
 mkdir -p temp_x64
 unzip -q "$ZIP_X64" -d temp_x64
 
-# Find the executable in the extracted directories
+# Buscar el ejecutable en los directorios extraídos
 ARM64_EXEC=$(find temp_arm64 -name "$EXECUTABLE_NAME" -type f | head -1)
 X64_EXEC=$(find temp_x64 -name "$EXECUTABLE_NAME" -type f | head -1)
 
 if [ -z "$ARM64_EXEC" ] || [ -z "$X64_EXEC" ]; then
-    echo "Error: Could not find executable '$EXECUTABLE_NAME' in one or both .zip files"
+    echo "Error: No se encontró el ejecutable '$EXECUTABLE_NAME' en uno o ambos archivos .zip"
     echo "ARM64: $ARM64_EXEC"
     echo "X64: $X64_EXEC"
     exit 1
 fi
 
-# Get base directories where executables are located
+# Obtener directorios base donde están los ejecutables
 ARM64_DIR=$(dirname "$ARM64_EXEC")
 X64_DIR=$(dirname "$X64_EXEC")
 
-echo "📁 ARM64 executable found in: $ARM64_DIR"
-echo "📁 X64 executable found in: $X64_DIR"
+echo "📁 ARM64 ejecutable encontrado en: $ARM64_DIR"
+echo "📁 X64 ejecutable encontrado en: $X64_DIR"
 
-echo "🔨 Creating universal bundle $BUNDLE_NAME..."
+echo "🔨 Creando bundle universal $BUNDLE_NAME..."
 
-# Create bundle structure
+# Crear estructura del bundle
 mkdir -p "$BUNDLE_NAME/Contents/MacOS"
 mkdir -p "$BUNDLE_NAME/Contents/Resources"
 
-echo "📝 Creating Info.plist..."
+echo "📝 Creando Info.plist..."
 cat > "$BUNDLE_NAME/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -94,27 +94,27 @@ cat > "$BUNDLE_NAME/Contents/Info.plist" << EOF
 </plist>
 EOF
 
-# Add execution permissions to extracted binaries
-echo "🔓 Adding execution permissions..."
+# Agregar permisos de ejecución a los binarios extraídos
+echo "🔓 Agregando permisos de ejecución..."
 chmod +x "$ARM64_EXEC"
 chmod +x "$X64_EXEC"
 
-echo "🔗 Creating universal binary..."
+echo "🔗 Creando binario universal..."
 lipo -create \
     "$ARM64_EXEC" \
     "$X64_EXEC" \
     -output "$BUNDLE_NAME/Contents/MacOS/$EXECUTABLE_NAME"
 
-echo "📚 Copying libraries (using ARM64 as base)..."
+echo "📚 Copiando bibliotecas (usando ARM64 como base)..."
 
-# Copy all .dylib libraries from ARM64 (they are identical on both platforms)
+# Copiar todas las bibliotecas .dylib desde ARM64 (son iguales en ambas plataformas)
 for lib in $(find "$ARM64_DIR" -name "*.dylib" -exec basename {} \; 2>/dev/null); do
     echo "  📚 $lib"
     cp "$ARM64_DIR/$lib" "$BUNDLE_NAME/Contents/MacOS/"
 done
 
-# Copy other files (not .dylib and not the executable)
-echo "📄 Copying additional files..."
+# Copiar otros archivos (no .dylib y no el ejecutable)
+echo "📄 Copiando archivos adicionales..."
 for file in $(find "$ARM64_DIR" -type f ! -name "*.dylib" ! -name "$EXECUTABLE_NAME" -exec basename {} \; 2>/dev/null | sort -u); do
     if [ -f "$ARM64_DIR/$file" ]; then
         echo "  📄 $file"
@@ -122,19 +122,22 @@ for file in $(find "$ARM64_DIR" -type f ! -name "*.dylib" ! -name "$EXECUTABLE_N
     fi
 done
 
-# Set permissions for final executable
+# Establecer permisos del ejecutable final
 chmod +x "$BUNDLE_NAME/Contents/MacOS/$EXECUTABLE_NAME"
 
-echo "🧹 Cleaning temporary files..."
+echo "🧹 Limpiando archivos temporales..."
 rm -rf temp_arm64 temp_x64
 
 echo ""
-echo "✅ Universal bundle created: $BUNDLE_NAME"
+echo "✅ Bundle universal creado: $BUNDLE_NAME"
 
-# Verify architectures
-echo "🔍 Verifying executable architectures:"
+# Verificar arquitecturas
+echo "🔍 Verificando arquitecturas del ejecutable:"
 lipo -info "$BUNDLE_NAME/Contents/MacOS/$EXECUTABLE_NAME"
 
 echo ""
-echo "📦 Bundle contents:"
+echo "📦 Contenido del bundle:"
 ls -la "$BUNDLE_NAME/Contents/MacOS/"
+
+echo ""
+echo "🚀 Para probar: open $BUNDLE_NAME"

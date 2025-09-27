@@ -38,7 +38,7 @@ jobs:
 
     - name: 🛠️ Make scripts executable
       run: |
-        chmod +x *.sh
+        chmod +x scripts/*.sh
 
     - name: 📥 Download ARM64 ZIP
       run: |
@@ -65,7 +65,7 @@ jobs:
     - name: 🔨 Create Universal Bundle
       run: |
         echo "Creating universal bundle..."
-        ./create_universal_from_zips.sh \
+        ./scripts/create_universal_from_zips.sh \
           osx-arm64.zip \
           osx-x64.zip \
           "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}"
@@ -79,7 +79,7 @@ jobs:
     - name: 💿 Create DMG
       run: |
         echo "Creating DMG..."
-        ./create_dmg.sh \
+        ./scripts/create_dmg.sh \
           "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app" \
           "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}"
 
