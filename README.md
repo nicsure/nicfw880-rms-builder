@@ -37,7 +37,8 @@ repo/
 ├── .github/workflows/build-macos.yml  # GitHub Actions workflow
 ├── scripts/                           # Build scripts
 │   ├── create_universal_from_zips.sh  # Bundle creation
-│   └── create_dmg.sh                  # DMG creation
+│   ├── create_dmg.sh                  # DMG creation
+│   └── create_x64_app_from_zip.sh     # Stopgap x86_64-only bundler (Rosetta)
 ├── to_release/                          # Upload your ZIPs here (optional)
 └── README.md                          # This file
 ```
@@ -56,6 +57,29 @@ chmod +x scripts/*.sh
 # Create DMG
 ./scripts/create_dmg.sh NicFW880_RMS.app NicFW880_RMS-v1.0.0
 ```
+
+### Temporary stopgap: x86_64-only app for Rosetta
+
+Until upstream arm64 artifacts are corrected (some arm zip dylibs are actually x86_64), ship an x86_64-only app that runs on Apple Silicon via Rosetta:
+
+```bash
+./scripts/create_x64_app_from_zip.sh to_release/osx-x64.zip NicFW880_RMS
+./scripts/create_dmg.sh NicFW880_RMS.app
+```
+
+Notes:
+- Root cause (for upstream): the `osx-arm64.zip` includes at least one native dylib compiled as x86_64 (e.g., `libAvaloniaNative.dylib`), which causes arm64 launch to fail. Once fixed, return to the universal script above.
+
+### GitHub Actions: also upload x86_64 artifact
+
+To publish a Rosetta-compatible asset alongside the universal build, add a step (or job) that runs:
+
+```bash
+./scripts/create_x64_app_from_zip.sh to_release/osx-x64.zip NicFW880_RMS
+./scripts/create_dmg.sh NicFW880_RMS.app
+```
+
+Then upload `NicFW880_RMS.dmg` as an additional release asset in your workflow (duplicate the existing upload step and point it at the x86_64 DMG).
 
 ## 🎯 Use Cases
 

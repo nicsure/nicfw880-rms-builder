@@ -111,3 +111,65 @@ jobs:
           ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-universal.zip
         draft: false
         prerelease: false
+
+  build-x64-dmg:
+    runs-on: macos-latest
+    needs: build-universal-dmg
+    steps:
+    - name: 🔍 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🛠️ Make scripts executable
+      run: |
+        chmod +x scripts/*.sh
+
+    - name: 📥 Copy ZIP files from repository
+      run: |
+        cp to_release/osx-x64.zip .
+        ls -la osx-x64.zip
+
+    - name: 🔨 Create x86_64-only Bundle (Rosetta stopgap)
+      run: |
+        ./scripts/create_x64_app_from_zip.sh \
+          osx-x64.zip \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}"
+
+    - name: 💿 Create x86_64 DMG
+      run: |
+        ./scripts/create_dmg.sh \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app" \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-x86_64"
+
+    - name: 📦 Create ZIP of x86_64 Bundle (for artifact)
+      run: |
+        zip -r "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-x86_64.zip" \
+          "${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}.app"
+
+    - name: 📤 Upload x86_64 Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-x86_64-build
+        path: |
+          *-x86_64.dmg
+          *-x86_64.zip
+
+    - name: 🚀 Update Release with x86_64 assets
+      if: ${{ github.event.inputs.create_release == 'true' }}
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.event.inputs.version || 'v1.0.0' }}
+        append_body: false
+        name: ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }} ${{ github.event.inputs.version || 'v1.0.0' }}
+        body: |
+          ## ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }} ${{ github.event.inputs.version || 'v1.0.0' }}
+
+          Adds x86_64-only asset for Rosetta compatibility on Apple Silicon while upstream arm64 artifacts are fixed.
+
+          ### Files
+          - 📱 Universal DMG and ZIP (ARM64 + x86_64)
+          - 🐟 x86_64 DMG and ZIP (Rosetta stopgap)
+        files: |
+          ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-x86_64.dmg
+          ${{ github.event.inputs.executable_name || 'NicFW880_RMS' }}-${{ github.event.inputs.version || 'v1.0.0' }}-x86_64.zip
+        draft: false
+        prerelease: false
